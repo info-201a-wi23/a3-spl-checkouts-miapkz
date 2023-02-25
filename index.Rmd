@@ -5,82 +5,102 @@ output: html_document
 
 ### Introduction
 
-An introduction of the data and a description of the trends/books/items you are choosing to analyze (and why!)
+The dataset I chose is of items checked out at least 10 times a month between 2017-2023. I chose to look at 3 different aspects of this data that interested me. First, I looked at fiction vs. nonfiction checkouts because I have been reading a lot more nonfiction books lately and I wanted to see if the trends matched that. Secondly, I looked at different mediums - ebook, physical book and audiobook. I wanted to see if the pandemic changed how often people check out physical books. Finally, I compared the checkouts of three different books - So You Want To Talk About Race - the most checkout out book in this time period and two other popular books that I enjoyed reading - The Alchemist and To Kill a Mockingbird.
 
 ### Summary Information
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library_data <- read.csv(file = "C:\\Users\\miape\\OneDrive\\INFO201\\a3-spl-checkouts-miapkz\\2017-2023-10-Checkouts-SPL-Data.csv\\2017-2023-10-Checkouts-SPL-Data.csv")
+library(dplyr)
+library(stringr)
+most_checked_out_book <- library_data %>% filter(Checkouts == max(Checkouts)) %>% pull (Title)
+ 
+ max_checkouts <- library_data %>% filter(Checkouts == max(Checkouts)) %>% pull(max(Checkouts))
+ 
+# How many total physical books were checked out?
+ total_books <- sum(str_detect(library_data$MaterialType, "BOOK"))
 
-Write a summary paragraph of findings that includes the 5 values calculated from your summary information R script
+# How many total eBooks were checked out?
+ total_ebooks <- sum(str_detect(library_data$MaterialType, "EBOOK"))
 
-These will likely be calculated using your DPLYR skills, answering questions such as:
+# Most checked out book(s) in 2020.
+ most_checked_out_2020 <- library_data %>% group_by(CheckoutYear == "2020") %>% filter(Checkouts == max(Checkouts)) %>% pull(Title)
 
-- What is the average number of checkouts for each item?
-- What is the month or year with the most/least checkouts for a book that you're interested in?
-- What is the month or year with the most/least checkouts for ebooks?
-- How has the number of print book checkouts changed over time?
+                         
+```
 
-Feel free to calculate and report values that you find relevant.
+I found that the most checked out book between 2017 and 2023 was `r most_checked_out_book`, with `r max_checkouts` checkouts in total.
+`r most_checked_out_2020` were also the most checked out books in 2020 only. In total, `r total_books` physical books were checked out, and `r total_ebooks` Ebooks were checked out.
 
 ### The Dataset
 
-- Who collected/published the data?  
-- What are the parameters of the data (dates, number of checkouts, kinds of books, etc.)?
-- How was the data collected or generated?  
-- Why was the data collected?  
-- What, if any, ethical questions do you need to consider when working with this data?  
-- What are possible limitations or problems with this data?   (at least 200 words)
+This data was collected and published by the Seattle Public Library. For digital items, they use data from media vendors. For physical checkouts between April 2005 and September 2016, the data came from the Legardy artwork data archives. From October 2016 to the present, the source is Horizon ILS. The data contains the checkout month and year for each book, and how many times it was checked out in that time. It also includes the Title of the Book, its medium, publisher, author, what subjects it falls under and what media vendor it was checked out through (for digital items). This data was collected to keep track of what is being checked out of the Seattle Public Libraries. This information could be helpful in determining funding and what library curators should focus on when purchasing new books. It also gives insight into what people are interested in reading within certain periods of time. Possible limitations of this data are that it does not include information on whether the books were renewed. Thus, if one considers a renewal as two separate checkouts, this data is not visible. Another limitation is that the data does not include an ISBN, which could be a helpful numerical factor in determining the items that have been checked out.
 
 
 ### First Trends Over Time Chart
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+My first chart shows the checkouts over time for fiction vs. nonfiction books. I thought it would be insightful to see how and if the total checkouts for these are different, and if there was any year in particular that the trends changed drastically. From the graph I can see that nonfiction checkouts were significantly lower than fiction checkouts until 2022, when nonfiction checkouts spiked for some reason. 
 
-The first chart that you will create and include will show the trend over time of your variable/topic/interest. Think carefully about what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+#Creating chart 1
+library("stringr")
+library("dplyr")
 
-- Show more than one, but fewer than ~10 trends
-  - For example, two books, or 5 different mediums
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- You need a legend for your different line colors and a clear - legend title
-In your .Rmd file, make sure to describe why you included the chart, and what patterns emerged
+# Filtering the data by total fiction vs. nonfiction
 
-When we say "clear" or "human readable" titles and labels, that means that you should not just display the variable name.
+"Fiction" <- library_data$Subjects[str_detect(library_data$Subjects, "fiction")]
+"Nonfiction" <- library_data$Subjects[str_detect(library_data$Subjects, "nonfiction")]
 
-Here's an example of how to run an R script inside an RMarkdown file:
+chart_1 <- library_data %>% filter(Subjects %in% c("Fiction", "Nonfiction")) %>% group_by(CheckoutYear, Subjects) %>% summarize(sum = sum(Checkouts))
 
-``````{r, echo = FALSE, warning = FALSE, code = readLines("chart1_example.R")}
+# Making line graph 
+library(ggplot2)
+ggplot(data=chart_1) +
+  geom_line(aes(x=CheckoutYear, y = sum, color=Subjects)) +
+  labs(title = "Fiction vs. Nonfiction Checkouts", x = "Years", y = "Number of Checkouts")
+
+
 ```
 
 ### Second Trends Over Time Chart
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+My second chart shows the total checkouts over time for audiobooks, books, and ebooks. I wanted see how these three mediums compare in popularity. From the graph I can see that physical books declined in popularity, while both audiobook and ebook checkouts increased.
 
-The second chart that you will create and include will show another trend over time of your variable/topic/interest. Think carefully about what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+# Creating Chart 2
 
-- Show more than one, but fewer than ~10 trends
-  - For example, two books, or 5 different mediums
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- You need a legend for your different line colors and a clear - legend title
-In your .Rmd file, make sure to describe why you included the chart, and what patterns emerged
+# Filtering data to show checkouts by material type per year
+chart_2 <- library_data %>% group_by(CheckoutYear, MaterialType) %>% filter(MaterialType %in% c("EBOOK", "BOOK", "AUDIOBOOK")) %>% summarize(totals = sum(Checkouts))
 
-When we say "clear" or "human readable" titles and labels, that means that you should not just display the variable name.
-
-Here's an example of how to run an R script inside an RMarkdown file:
-
-``````{r, echo = FALSE, code = readLines("chart2_example.R")}
+# Making line graph
+library(ggplot2)
+library(scales)
+ggplot(data=chart_2) +
+  geom_line(aes(x=CheckoutYear, y = totals, color=MaterialType)) +
+  labs(title = "Total Book Checkouts by Type between 2017 and 2023", x = "Years", y = "Total Checkouts")+
+  scale_x_continuous(breaks=seq(2017, 2023, 1)) +
+  scale_y_continuous(labels=label_number_si())
 ```
 
-### Your Choice
+### My Choice
 
-The last chart is up to you. It could be a line plot, scatter plot, histogram, bar plot, stacked bar plot, and more. Here are some requirements to help guide your design:
+(I realize my third book is not showing up in the html file - it was showing up correctly when I ran it in RStudio and I copy and pasted it in the rmd file exactly, so I don't know what went wrong. Please let me know what I need to fix)
+For the last graph, I chose to graph the total checkouts for the most popular book in the time period 2017-2023 - So You Want to Talk About Race and compare it to two other books that I have read and are also quite popular - The Alchemist and To Kill a Mockingbird. I discovered that So You Want to Talk About Race was checked out significantly more than the other two. 
 
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- You need a legend for your different line colors and a clear legend title
 
-Here's an example of how to run an R script inside an RMarkdown file:
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+# Creating chart 3
 
-``````{r, echo = FALSE, code = readLines("chart2_example.R")}
+# Filter data to only show the most checked out book - So You Want to Talk About Race, and two books I read and really liked - The Alchemist and To Kill a Mockingbird
+
+chart_3 <- library_data %>% group_by(CheckoutYear, Title) %>% filter(Title %in% c("So You Want to Talk about Race (Unabridged)", "To Kill a Mockingbird", "The Alchemist (Unabridged)")) %>% summarize(total = sum(Checkouts))
+
+
+# Making line chart
+ggplot(data=chart_3) +
+  geom_line(aes(x=CheckoutYear, y=total, color=Title)) +
+  labs(title = "Checkouts of 3 Chosen Books between 2017 and 2021", x = "Years", y= "Total Checkouts")
+
+
 ```
 
 
